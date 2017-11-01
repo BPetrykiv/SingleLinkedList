@@ -88,6 +88,7 @@ LinkedList<T>::LinkedList(std::size_t initsize, T elem)
 template<typename T>
 LinkedList<T>::LinkedList(const LinkedList &other)
 {
+    clear();
     auto p = other.head;
     for(; p != nullptr; p = p->next)
         addEnd(p->data);
