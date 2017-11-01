@@ -1,8 +1,7 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 #include <utility>
-
-
+#include <ostream>
 
 template<typename T>
 struct Node
@@ -23,7 +22,7 @@ private:
     Node<T>* head;
     Node<T>* tail;
 
-    size_t size;
+    std::size_t size;
 
 
 public:
@@ -34,6 +33,7 @@ public:
 
     LinkedList& operator=(const LinkedList& other);
     LinkedList& operator=(LinkedList&& other);
+    ~LinkedList();
 
     void addFront(const T& elem);
     void addFront(T&& elem);
@@ -55,6 +55,7 @@ public:
     bool removeEnd();
 
     void clear();
+    void print(std::ostream& os) const;
 
 
 };
@@ -88,7 +89,8 @@ LinkedList<T>::LinkedList(std::size_t initsize, T elem)
 template<typename T>
 LinkedList<T>::LinkedList(const LinkedList &other)
 {
-    clear();
+    head = tail = nullptr;
+    size = 0;
     auto p = other.head;
     for(; p != nullptr; p = p->next)
         addEnd(p->data);
@@ -142,7 +144,7 @@ void LinkedList<T>::clear()
 {
     while(head)
     {
-        Node<T>* next = head->next;
+        auto next = head->next;
         delete head;
         head = next;
     }
@@ -284,6 +286,17 @@ const T& LinkedList<T>::front() const
     return  head->data;
 }
 
+template<typename T>
+LinkedList<T>::~LinkedList()
+{
+    clear();
+}
 
+template<typename T>
+void LinkedList<T>::print(std::ostream &os) const
+{
+    for(auto p = head; p != nullptr; p = p->next)
+        os << p->data << " ";
+}
 
 #endif // LINKEDLIST_H
