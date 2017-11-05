@@ -13,8 +13,6 @@ struct Node
     Node(T&& d, Node<T>* n = nullptr):data(d), next(n){}
 };
 
-
-
 template<typename T>
 class LinkedList
 {
@@ -23,16 +21,20 @@ private:
     Node<T>* tail;
 
     std::size_t size;
-
+    void initList(std::initializer_list<T> list);
+    bool isCorrectIndex(size_t idx) const;
+    void removeNext(Node<T>*& p);
 
 public:
     LinkedList() noexcept;
-    LinkedList(std::size_t initsize, T elem = T());
+    explicit LinkedList(std::size_t initsize, T elem = T());
     LinkedList(const LinkedList& other);
     LinkedList(LinkedList&& other);
+    LinkedList(std::initializer_list<T> list);
 
     LinkedList& operator=(const LinkedList& other);
     LinkedList& operator=(LinkedList&& other);
+    LinkedList& operator=(std::initializer_list<T> list);
     ~LinkedList();
 
     void addFront(const T& elem);
@@ -57,9 +59,53 @@ public:
     void clear();
     void print(std::ostream& os) const;
 
+    bool insertBefore(std::size_t idx, const T& elem);
+
+    bool isContains(const T& elem);
+
+    bool removeElem(const T& elem);
+    bool remove(std::size_t idx);
+
+    std::size_t indexOf(const T& elem) const;
+
 
 };
+template<typename T>
+void LinkedList<T>::removeNext(Node<T> *&p)
+{
+    auto next = p->next->next;
+    auto del = p->next;
+    delete del;
+    p->next = next;
+}
 
+template<typename T>
+bool LinkedList<T>::isCorrectIndex(size_t idx) const
+{
+    if(idx < 0 || idx >= size) return false;
+    return true;
+}
+
+template<typename T>
+void LinkedList<T>::initList(std::initializer_list<T> list)
+{
+    for(auto p = list.begin(); p != list.end(); p++)
+        addEnd(*p);
+
+}
+
+template<typename T>
+LinkedList<T>::LinkedList(std::initializer_list<T> list)
+{
+    initList(list);
+}
+
+template<typename T>
+LinkedList<T>& LinkedList<T>::operator =(std::initializer_list<T> list)
+{
+    initList(list);
+    return *this;
+}
 
 template<typename T>
 LinkedList<T>::LinkedList() noexcept
@@ -75,14 +121,8 @@ LinkedList<T>::LinkedList(std::size_t initsize, T elem)
     head = nullptr;
     tail = nullptr;
     size = 0;
-    auto p = head;
     for(std::size_t i = 0; i < initsize; i++)
-    {
-        p = new Node<T>(elem);
-        p = p->next;
-        if(i + 1 == initsize)
-            tail = p;
-    }
+        this->addEnd(elem);
     size = initsize;
 }
 
@@ -188,7 +228,6 @@ void LinkedList<T>::addEnd(const T &elem)
     size++;
 }
 
-
 template<typename T>
 void LinkedList<T>::addEnd(T &&elem)
 {
@@ -258,6 +297,7 @@ bool LinkedList<T>::removeEnd()
 
     delete tail;
     tail = beforeEnd;
+    tail->next = nullptr;
     size--;
     return true;
 }
@@ -295,8 +335,116 @@ LinkedList<T>::~LinkedList()
 template<typename T>
 void LinkedList<T>::print(std::ostream &os) const
 {
+    if(size == 0)
+    {
+        os << "List is empty\n";
+        return;
+    }
     for(auto p = head; p != nullptr; p = p->next)
         os << p->data << " ";
+}
+
+template<typename T>
+bool LinkedList<T>::insertBefore(std::size_t idx, const T &elem)
+{
+    if(!isCorrectIndex(idx)) return false;
+    if(idx == 0)
+    {
+        addFront(elem);
+        return true;
+    }
+
+    Node<T>* newNode = new Node<T>(elem);
+    auto p = head;
+
+    for(std::size_t i = 0; i < idx-1; i++ )
+        p = p->next;
+
+    newNode->next = p->next;
+    p->next = newNode;
+    size++;
+    return true;
+
+}
+
+
+template<typename T>
+bool LinkedList<T>::isContains(const T &elem)
+{
+    for(auto p = head; p != nullptr; p = p->next)
+        if(p->data == elem)
+            return true;
+    return false;
+}
+
+template<typename T>
+std::size_t LinkedList<T>::indexOf(const T &elem) const
+{
+    int idx = 0;
+    for(auto p = head; p != nullptr; p = p->next){
+        if(p->data == elem)
+            return idx;
+        idx++;
+
+    }
+    return -1;
+}
+
+template<typename T>
+bool LinkedList<T>::removeElem(const T &elem)
+{
+    if(head->data == elem)
+    {
+        removeFront();
+        return true;
+    }
+
+    if(tail->data == elem)
+    {
+        removeEnd();
+        return true;
+    }
+
+    for(auto p = head; p != nullptr; p = p->next)
+    {
+        if(p->next != nullptr && p->next->data == elem)
+        {
+            removeNext(p);
+            size--;
+            return true;
+        }
+    }
+
+
+}
+
+template<typename T>
+bool LinkedList<T>::remove(std::size_t idx)
+{
+    if(!isCorrectIndex(idx)) return false;
+
+    if(idx == 0){
+        removeFront();
+        return true;
+    }
+
+    if(idx == size-1){
+        removeEnd();
+        return true;
+    }
+
+    auto p = head;
+    for(size_t i = 0; i < size; i++)
+    {
+       if(i+1 == idx)
+       {
+           removeNext(p);
+           size--;
+           return true;
+
+       }
+        p = p->next;
+    }
 }
 
 #endif // LINKEDLIST_H
